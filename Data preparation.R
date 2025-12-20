@@ -4,7 +4,8 @@
 
 library(ftsa)
 
-load("Shiny_data.RData")
+load("Shiny_data_all.RData")
+load("Shiny_base_fore.RData")
 
 country_names = c("Austria", "Belgium", "Czech", "Denmark", "Estonia",
                   "Finland", "France", "Hungary", "Iceland", "Ireland",
@@ -445,4 +446,86 @@ for(ih in 1:10)
   rm(output_latex_temp, SHAP_5_latex_temp, SHAP_15_latex_temp, SHAP_20_latex_temp, SHAP_50_latex_temp)
 }
 
+
+### comparison of MSE and MAE
+
+all_method = c("lc", "rh", "apc", "cbd", "m6", "m7", "m8", "plat", "lca_dt", "lca_dxt", "lca_e0", "lca_none", "fdm", "robust_fdm", "pr")
+
+comparison_mse_female = paste0(OECD_countries, "_comparison_mse_female")
+comparison_mse_male = paste0(OECD_countries, "_comparison_mse_male")
+comparison_mae_female = paste0(OECD_countries, "_comparison_mae_female") 
+comparison_mae_male = paste0(OECD_countries, "_comparison_mae_male")
+
+for(country_index in 1:24)
+{
+  comparison_mse_female_temp = comparison_mse_male_temp = 
+    comparison_mae_female_temp = comparison_mae_male_temp = list()
+ 
+  # base forecasts
+  comparison_mse_female_temp$base = base_mse_all_female[[country_index]]*100
+  comparison_mae_female_temp$base = base_mae_all_female[[country_index]]*100
+  
+  comparison_mse_male_temp$base = base_mse_all_male[[country_index]]*100
+  comparison_mae_male_temp$base = base_mae_all_male[[country_index]]*100
+  
+  colnames(comparison_mse_female_temp$base) = colnames(comparison_mse_male_temp$base) = 
+    colnames(comparison_mae_female_temp$base) = colnames(comparison_mae_male_temp$base) = all_method
+  
+  # combined forecasts
+  comparison_mse_female_temp$combined = comparison_mse_male_temp$combined = 
+    comparison_mae_female_temp$combined = comparison_mae_male_temp$combined = matrix(NA, nrow = 10, ncol = 8)
+  rownames(comparison_mse_female_temp$combined) = rownames(comparison_mse_male_temp$combined) = 
+    rownames(comparison_mae_female_temp$combined) = rownames(comparison_mae_male_temp$combined) = paste0("h = ", 1:10)
+  colnames(comparison_mse_female_temp$combined) = colnames(comparison_mse_male_temp$combined) = 
+    colnames(comparison_mae_female_temp$combined) = colnames(comparison_mae_male_temp$combined) =
+    c("Average", "AIC", "SHAP", "SHAP5", "SHAP10", "SHAP15", "SHAP20", "SHAP50")
+  for(ih in 1:10)
+  {
+    ### MSE
+    ## female
+    comparison_mse_female_temp$combined[ih,1:3] = as.numeric(get(all_country_MSE[ih])[country_index,c(1,3,5)])*100
+    comparison_mse_female_temp$combined[ih,4] = get(SHAP_5_MSE[ih])[country_index, 1]*100
+    comparison_mse_female_temp$combined[ih,5] = get(SHAP_10_MSE[ih])[country_index, 1]*100
+    comparison_mse_female_temp$combined[ih,6] = get(SHAP_15_MSE[ih])[country_index, 1]*100
+    comparison_mse_female_temp$combined[ih,7] = get(SHAP_20_MSE[ih])[country_index, 1]*100
+    comparison_mse_female_temp$combined[ih,8] = get(SHAP_50_MSE[ih])[country_index, 1]*100
+    
+    ## male
+    comparison_mse_male_temp$combined[ih,1:3] = as.numeric(get(all_country_MSE[ih])[country_index,c(2,4,6)])*100
+    comparison_mse_male_temp$combined[ih,4] = get(SHAP_5_MSE[ih])[country_index, 2]*100
+    comparison_mse_male_temp$combined[ih,5] = get(SHAP_10_MSE[ih])[country_index, 2]*100
+    comparison_mse_male_temp$combined[ih,6] = get(SHAP_15_MSE[ih])[country_index, 2]*100
+    comparison_mse_male_temp$combined[ih,7] = get(SHAP_20_MSE[ih])[country_index, 2]*100
+    comparison_mse_male_temp$combined[ih,8] = get(SHAP_50_MSE[ih])[country_index, 2]*100
+    
+    ### MAE
+    ## female
+    comparison_mae_female_temp$combined[ih,1:3] = as.numeric(get(all_country_MAE[ih])[country_index,c(1,3,5)])*100
+    comparison_mae_female_temp$combined[ih,4] = get(SHAP_5_MAE[ih])[country_index, 1]*100
+    comparison_mae_female_temp$combined[ih,5] = get(SHAP_10_MAE[ih])[country_index, 1]*100
+    comparison_mae_female_temp$combined[ih,6] = get(SHAP_15_MAE[ih])[country_index, 1]*100
+    comparison_mae_female_temp$combined[ih,7] = get(SHAP_20_MAE[ih])[country_index, 1]*100
+    comparison_mae_female_temp$combined[ih,8] = get(SHAP_50_MAE[ih])[country_index, 1]*100
+    
+    ## male
+    comparison_mae_male_temp$combined[ih,1:3] = as.numeric(get(all_country_MAE[ih])[country_index,c(2,4,6)])*100
+    comparison_mae_male_temp$combined[ih,4] = get(SHAP_5_MAE[ih])[country_index, 2]*100
+    comparison_mae_male_temp$combined[ih,5] = get(SHAP_10_MAE[ih])[country_index, 2]*100
+    comparison_mae_male_temp$combined[ih,6] = get(SHAP_15_MAE[ih])[country_index, 2]*100
+    comparison_mae_male_temp$combined[ih,7] = get(SHAP_20_MAE[ih])[country_index, 2]*100
+    comparison_mae_male_temp$combined[ih,8] = get(SHAP_50_MAE[ih])[country_index, 2]*100
+  }
+  
+  
+  assign(comparison_mse_female[country_index], comparison_mse_female_temp)
+  assign(comparison_mse_male[country_index], comparison_mse_male_temp)
+  
+  assign(comparison_mae_female[country_index], comparison_mae_female_temp)
+  assign(comparison_mae_male[country_index], comparison_mae_male_temp)
+  
+  print(country_index)
+}
+
+
+save.image(file='R_Shiny.RData')
 
