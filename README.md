@@ -58,5 +58,5 @@ Han Lin Shang - hanlin.shang@mq.edu.au
 Yang Yang - yang.yang10@newcastle.edu.au
 
 <br />
-    <a href="[[https://github.com/github_username/repo_name](https://github.com/YangANU/Ensemble_Mortality_Models)](https://github.com/YangANU/Ensemble_Mortality_Models)"><strong>Explore R code »</strong></a>
+    <a href="https://github.com/YangANU/Ensemble_Mortality_Models"><strong>Explore R code »</strong></a>
 <br />
