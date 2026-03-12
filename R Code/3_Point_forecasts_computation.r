@@ -8,7 +8,7 @@
 
 # Load required R packages
 
-require(StMoMo)
+library(StMoMo)
 library(h2o)
 library(shapley)
 library(demography)
@@ -1171,7 +1171,7 @@ for(country_index in 1:length(OECD_countries))
 
 # MSE for ih = 1, 6, 10
 
-or(ih in c(1,6,10))
+for(ih in c(1,6,10))
 {
   output_by_country = list()
   for(country_index in 1:length(OECD_fore_MSE_all))
