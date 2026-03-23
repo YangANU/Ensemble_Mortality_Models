@@ -17,9 +17,9 @@ library(xlsx)
 ## If using the provided MS Excel Spreadsheets in the "OECD_data" folder, run the following code and skip the "Download data directly from HMD" section.
 
 OECD_countries = c("AUT", "BEL", "CZE", "DNK", "EST", "FIN",
-                   "FRATNP", "HUN", "ISL", "IRL", "ITA", "JPN",
-                   "LVA", "LTU", "LUX", "NLD", "NZL_NP", "NOR",
-                   "POL", "ESP", "SWE", "CHE", "GBR_NP", "USA")
+                   "FRA", "HUN", "ISL", "IRL", "ITA", "JPN",
+                   "LVA", "LTU", "LUX", "NLD", "NZL", "NOR",
+                   "POL", "ESP", "SWE", "CHE", "GBR", "USA")
 
 OECD_full_name = c("Austria", "Belgium", "Czech", "Denmark", "Estonia",
                    "Finland", "France", "Hungary", "Iceland", "Ireland",

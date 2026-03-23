@@ -85,6 +85,18 @@ OECD_test_smooth = c("AUT_test_smooth", "BEL_test_smooth", "CZE_test_smooth", "D
                      "NLD_test_smooth", "NZL_test_smooth", "NOR_test_smooth", "POL_test_smooth", "ESP_test_smooth", 
                      "SWE_test_smooth", "CHE_test_smooth", "GBR_test_smooth", "USA_test_smooth")
 
+OECD_fore_train = c("AUT_fore_train", "BEL_fore_train", "CZE_fore_train", "DNK_fore_train", "EST_fore_train", 
+                    "FIN_fore_train", "FRA_fore_train", "HUN_fore_train", "ISL_fore_train", "IRL_fore_train", 
+                    "ITA_fore_train", "JPN_fore_train", "LVA_fore_train", "LTU_fore_train", "LUX_fore_train", 
+                    "NLD_fore_train", "NZL_fore_train", "NOR_fore_train", "POL_fore_train", "ESP_fore_train", 
+                    "SWE_fore_train", "CHE_fore_train", "GBR_fore_train", "USA_fore_train")
+
+OECD_fore_test = c("AUT_fore_test", "BEL_fore_test", "CZE_fore_test", "DNK_fore_test", "EST_fore_test", 
+                   "FIN_fore_test", "FRA_fore_test", "HUN_fore_test", "ISL_fore_test", "IRL_fore_test", 
+                   "ITA_fore_test", "JPN_fore_test", "LVA_fore_test", "LTU_fore_test", "LUX_fore_test", 
+                   "NLD_fore_test", "NZL_fore_test", "NOR_fore_test", "POL_fore_test", "ESP_fore_test", 
+                   "SWE_fore_test", "CHE_fore_test", "GBR_fore_test", "USA_fore_test")
+
 for(ij in 1:length(OECD_selected))
 {
   ################
