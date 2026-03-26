@@ -15,19 +15,56 @@ library(demography)
 
 OECD_PI_test = paste(OECD_countries, "_PI_test", sep = "")
 
-for(ij in 1:length(OECD_countries))
+for(ik in 1:length(OECD_countries))
 {
   # This loop may take significant time to complete.
   # Use a "save & load" strategy in case of R crashes.
-  PI_temp = err_fun_interval_testing(index = ij,  state_select = OECD_all_data, state_select_smooth = OECD_all_smooth, nboot = 1000)
-  assign(OECD_PI_test[ij], PI_temp)
+  PI_temp = err_fun_interval_testing(index = ik,  state_select = OECD_all_data, state_select_smooth = OECD_all_smooth, nboot = 1000)
+  assign(OECD_PI_test[ik], PI_temp)
   
-  save(PI_temp, file = paste(OECD_countries[ij], "_PI_test", ".RData", sep = ""))
+  save(PI_temp, file = paste(OECD_countries[ik], "_PI_test", ".RData", sep = ""))
   
   rm(PI_temp)
   gc()
-  print(ij)
+  
+  print(ik)
 }
+
+
+###################################
+###################################
+## The following code is optional
+## if the above loop is used.
+
+wd_path = getwd()
+
+for(ik in 1:length(OECD_countries))
+{
+  
+  PI_RDATA_path = paste0(wd_path, "/PI_test_RData/", OECD_PI_test[ik], ".RData")
+  
+  load(PI_RDATA_path)
+  assign(OECD_PI_test[ik], PI_temp)
+  
+  print(paste0("Loading ", OECD_countries[ik], "_PI_test.RData Complete"))
+  
+  rm(PI_temp)
+}
+
+## Check
+
+for(ik in 1:length(OECD_countries))
+{
+  print(paste0("Country ", OECD_countries[ik]))
+  print(length(get(OECD_PI_test[ik])$test_female_fore_lb))
+  print(length(get(OECD_PI_test[ik])$test_female_fore_ub))
+  print(length(get(OECD_PI_test[ik])$test_male_fore_lb))
+  print(length(get(OECD_PI_test[ik])$test_male_fore_ub))
+}
+
+
+###################################
+###################################
 
 # Compute averaged prediction interval and interval score
 

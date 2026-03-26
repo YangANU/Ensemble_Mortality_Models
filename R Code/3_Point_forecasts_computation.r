@@ -9,7 +9,7 @@
 # Load required R packages
 
 library(StMoMo)
-library(h2o)
+# library(h2o) # To install the "h2o" pacakage, go to line 280.
 library(shapley)
 library(demography)
 library(openxlsx)
@@ -27,36 +27,6 @@ OECD_all_smooth = c("AUT_smooth", "BEL_smooth", "CZE_smooth", "DNK_smooth", "EST
                   "ITA_smooth", "JPN_smooth", "LVA_smooth", "LTU_smooth", "LUX_smooth", 
                   "NLD_smooth", "NZL_smooth", "NOR_smooth", "POL_smooth", "ESP_smooth", 
                   "SWE_smooth", "CHE_smooth", "GBR_smooth", "USA_smooth")
-				  
-for(ij in 1:length(OECD_selected))
-{
-  all_data_temp = lapply(get(OECD_selected[ij]), extract.years, 1960:2019)
-  
-  # export death rates into csv
-  all_mx_temp = data.frame(Year = rep(1960:2019, each = 101), Age = rep(0:100, 60), 
-                             Female = na_replace(as.vector(all_data_temp$Female$rate$Female)), 
-                             Male = na_replace(as.vector(all_data_temp$Male$rate$Male)), 
-                             Total = na_replace(as.vector(all_data_temp$Total$rate$Total)))
-  write.table(all_mx_temp, file = "all_mx_temp.txt", row.names = FALSE)
-  
-  # export exposure into csv
-  all_expo_temp = data.frame(Year = rep(1960:2019, each = 101), Age = rep(0:100, 60), 
-                               Female = na_replace(as.vector(all_data_temp$Female$pop$Female)), 
-                               Male = na_replace(as.vector(all_data_temp$Male$pop$Male)), 
-                               Total = na_replace(as.vector(all_data_temp$Total$pop$Total)))
-  write.table(all_expo_temp, file = "all_expo_temp.txt", row.names = FALSE)
-  
-  # assign demogdata
-  demogdata_temp = read.demogdata("all_mx_temp.txt", "all_expo_temp.txt", "mortality", OECD_countries[ij], skip = 0, popskip = 0)
-  assign(OECD_all_data[ij], demogdata_temp)
-  
-  # smoothing
-  demogdata_temp_smooth = smooth.demogdata(demogdata_temp)
-  assign(OECD_all_smooth[ij], demogdata_temp_smooth)
-  
-  rm(all_data_temp, all_mx_temp, all_expo_temp, demogdata_temp, demogdata_temp_smooth)
-  
-}				  
 
 # Define training set (1960-1999) and a validation set (2000-2009).
 # Note that the "_test" in object names in the remaining script actually refers to the validation set (i.e., "testing" the estimated model on the validation set)
@@ -96,6 +66,37 @@ OECD_fore_test = c("AUT_fore_test", "BEL_fore_test", "CZE_fore_test", "DNK_fore_
                    "ITA_fore_test", "JPN_fore_test", "LVA_fore_test", "LTU_fore_test", "LUX_fore_test", 
                    "NLD_fore_test", "NZL_fore_test", "NOR_fore_test", "POL_fore_test", "ESP_fore_test", 
                    "SWE_fore_test", "CHE_fore_test", "GBR_fore_test", "USA_fore_test")
+				  
+for(ij in 1:length(OECD_selected))
+{
+  all_data_temp = lapply(get(OECD_selected[ij]), extract.years, 1960:2019)
+  
+  # export death rates into csv
+  all_mx_temp = data.frame(Year = rep(1960:2019, each = 101), Age = rep(0:100, 60), 
+                             Female = na_replace(as.vector(all_data_temp$Female$rate$Female)), 
+                             Male = na_replace(as.vector(all_data_temp$Male$rate$Male)), 
+                             Total = na_replace(as.vector(all_data_temp$Total$rate$Total)))
+  write.table(all_mx_temp, file = "all_mx_temp.txt", row.names = FALSE)
+  
+  # export exposure into csv
+  all_expo_temp = data.frame(Year = rep(1960:2019, each = 101), Age = rep(0:100, 60), 
+                               Female = na_replace(as.vector(all_data_temp$Female$pop$Female)), 
+                               Male = na_replace(as.vector(all_data_temp$Male$pop$Male)), 
+                               Total = na_replace(as.vector(all_data_temp$Total$pop$Total)))
+  write.table(all_expo_temp, file = "all_expo_temp.txt", row.names = FALSE)
+  
+  # assign demogdata
+  demogdata_temp = read.demogdata("all_mx_temp.txt", "all_expo_temp.txt", "mortality", OECD_countries[ij], skip = 0, popskip = 0)
+  assign(OECD_all_data[ij], demogdata_temp)
+  
+  # smoothing
+  demogdata_temp_smooth = smooth.demogdata(demogdata_temp)
+  assign(OECD_all_smooth[ij], demogdata_temp_smooth)
+  
+  rm(all_data_temp, all_mx_temp, all_expo_temp, demogdata_temp, demogdata_temp_smooth)
+  
+}				  
+
 
 for(ij in 1:length(OECD_selected))
 {
@@ -176,10 +177,19 @@ for(ij in 1:24)
   plot(get(OECD_test_smooth[ij]))
 }
 
+###############
+# Training Set
+###############
+
 for(ij in 1:length(OECD_selected))
 {
   # This loop takes significant time to complete.
-  # Use a "save & load" strategy in case of R crashes.
+
+  ## For R version later than 4.2.0, the memory.limit() is no longer supported. 
+  ## When encounter the memory limit issue: "Error in (1 + nYears - kt.lookback):kt.nNA : result would be too long a vector",
+  ## Clear the temporary memory objects by running gc() several times before continuing computation
+  ## Alternatively, increase the memory limit (i.e., save R_MAX_VSIZE="100Gb" to the .Renviron) for your RStudio.
+  
   train_fore_temp = err_fun_forecast_modified(index = ij, state_select = OECD_train, state_select_smooth = OECD_train_smooth)
   assign(OECD_fore_train[ij], train_fore_temp) 
   
@@ -189,6 +199,8 @@ for(ij in 1:length(OECD_selected))
   
   print(ij)
 }
+
+## check
 
 for(ij in 1:length(OECD_selected))
 {
@@ -200,10 +212,54 @@ for(ij in 1:length(OECD_selected))
   print(nrow(get(OECD_fore_train[ij])$train_male_AIC))
 }
 
-for(ij in 1:length(OECD_selected))
+
+###################################
+###################################
+## The following code is optional
+## if the above loop is used.
+
+# Manually load the saved ".RData" file.
+
+wd_path = getwd()
+
+for(ik in 1:length(OECD_countries))
+{
+  
+  fore_train_RDATA_path = paste0(wd_path, "/fore_train_RData/", OECD_countries[ik], "_fore_train.RData")
+  
+  load(fore_train_RDATA_path)
+  assign(OECD_fore_train[ik], train_fore_temp)
+  
+  print(paste0("Loading ", OECD_countries[ik], "_fore_train.RData Complete"))
+  
+  rm(train_fore_temp)
+}
+
+## Check
+
+for(ik in 1:length(OECD_countries))
+{
+  print(paste0("Country ", OECD_countries[ik]))
+  print(length(get(OECD_fore_train[ik])$train_female_fore))
+  print(length(get(OECD_fore_train[ik])$train_male_fore))
+}
+###################################
+###################################
+
+
+##############
+# Testing Set
+##############
+
+for(ij in 20:length(OECD_selected))
 {
   # This loop takes significant time to complete.
-  # Use a "save & load" strategy in case of R crashes.
+
+  ## For R version later than 4.2.0, the memory.limit() is no longer supported. 
+  ## When encounter the memory limit issue: "Error in (1 + nYears - kt.lookback):kt.nNA : result would be too long a vector",
+  ## Clear the temporary memory objects by running gc() several times before continuing computation
+  ## Alternatively, increase the memory limit (i.e., save R_MAX_VSIZE="100Gb" to the .Renviron) for your RStudio.
+  
   
   test_fore_temp = err_fun_forecast_modified(index = ij, state_select = OECD_test, state_select_smooth = OECD_test_smooth)
   assign(OECD_fore_test[ij], test_fore_temp) 
@@ -224,6 +280,42 @@ for(ij in 1:length(OECD_selected))
 {
   print(nrow(get(OECD_fore_test[ij])$train_male_AIC))
 }
+
+
+###################################
+###################################
+## The following code is optional
+## if the above loop is used.
+
+# Manually load the saved ".RData" file.
+
+wd_path = getwd()
+
+for(ik in 1:length(OECD_countries))
+{
+  
+  fore_test_RDATA_path = paste0(wd_path, "/fore_test_RData/", OECD_countries[ik], "_fore_test.RData")
+  
+  load(fore_test_RDATA_path)
+  assign(OECD_fore_test[ik], test_fore_temp)
+  
+  print(paste0("Loading ", OECD_countries[ik], "_fore_test.RData Complete"))
+  
+  rm(test_fore_temp)
+}
+
+## Check
+
+for(ik in 1:length(OECD_countries))
+{
+  print(paste0("Country ", OECD_countries[ik]))
+  print(length(get(OECD_fore_test[ik])$train_female_fore))
+  print(length(get(OECD_fore_test[ik])$train_male_fore))
+}
+###################################
+###################################
+
+
 
 # Combine the computed forecasts into dataframes for future computations
 
@@ -263,8 +355,38 @@ for(ij in 1:length(OECD_selected))
 
 # Compute SHAP values for each OECD country
 
+###################################
+###################################
+## The following code is optional
+## if the "h2O" has been installed.
+
+# The following two commands remove any previously installed H2O packages for R.
+if ("package:h2o" %in% search()) { detach("package:h2o", unload=TRUE) }
+if ("h2o" %in% rownames(installed.packages())) { remove.packages("h2o") }
+
+# Next, we download packages that H2O depends on.
+pkgs <- c("RCurl","jsonlite")
+for (pkg in pkgs) {
+  if (! (pkg %in% rownames(installed.packages()))) { install.packages(pkg) }
+}
+
+# Now we download, install and initialize the H2O package for R.
+install.packages("h2o", type="source", repos="https://h2o-release.s3.amazonaws.com/h2o/rel-3.46.0/10/R")
+
+# Finally, let's load H2O and start up an H2O cluster
+library(h2o)
+h2o.init()
+###################################
+###################################
+
+
+OECD_SHAP = paste(OECD_countries, "_SHAP", sep = "")
+
 for(ik in 1:length(OECD_countries))
 {
+  # This loop takes significant time to complete. 
+  # Computation time depends on the number of CPU cores available to H2O clusters.
+  
   temp_SHAP = age_specific_SHAP(country_index = ik)
   assign(OECD_SHAP[ik], temp_SHAP)
   
@@ -274,6 +396,42 @@ for(ik in 1:length(OECD_countries))
   
   print(paste(OECD_countries[ik], " SHAP Computation Complete", sep = ""))
 }
+
+
+###################################
+###################################
+## The following code is optional
+## if the above loop is used.
+
+# Manually load the saved ".RData" file.
+
+wd_path = getwd()
+
+for(ik in 1:length(OECD_countries))
+{
+  
+  SHAP_RDATA_path = paste0(wd_path, "/SHAP_RData/", OECD_SHAP[ik], ".RData")
+  
+  load(SHAP_RDATA_path)
+  assign(OECD_SHAP[ik], temp_SHAP)
+  
+  print(paste0("Loading ", OECD_countries[ik], "_SHAP.RData Complete"))
+  
+  rm(temp_SHAP)
+}
+
+## Check
+
+for(ik in 1:length(OECD_countries))
+{
+  print(paste0("Country ", OECD_countries[ik]))
+  print(length(get(OECD_SHAP[ik])$female_result))
+  print(length(get(OECD_SHAP[ik])$female_result))
+}
+
+###################################
+###################################
+
 
 # Compute weighted point forecasts for all OECD countries
 
@@ -507,6 +665,7 @@ for(country_index in 1:length(OECD_fore_result_base))
   colnames(base_mean_mse_female) = colnames(base_mean_mse_male) = c("lc", "rh", "apc", "cbd", "m6", "m7", "m8", "plat", "lca_dt", "lca_dxt", "lca_e0", "lca_none", "fdm", "robust_fdm", "pr")
   
   OBS_female = OBS_male =
+    fore_female = fore_male = 
     weighted_fore_female_top3 = weighted_fore_male_top3 =
     weighted_fore_female_top5 = weighted_fore_male_top5 = list()
 
@@ -1084,25 +1243,25 @@ for(country_index in 1:length(OECD_fore_result_base))
     
     if(ih == 1)
     {
-      wb = createWorkbook()
+      wb = openxlsx::createWorkbook()
       
       # female
-      addWorksheet(wb, sheetname_temp_female)
+      openxlsx::addWorksheet(wb, sheetname_temp_female)
       writeData(wb, sheetname_temp_female, fore_selected_female)
       
       # male
-      addWorksheet(wb, sheetname_temp_male)
+      openxlsx::addWorksheet(wb, sheetname_temp_male)
       writeData(wb, sheetname_temp_male, fore_selected_male)
     }
     
     if(ih > 1)
     {
       # female
-      addWorksheet(wb, sheetname_temp_female)
+      openxlsx::addWorksheet(wb, sheetname_temp_female)
       writeData(wb, sheetname_temp_female, fore_selected_female)
       
       # male
-      addWorksheet(wb, sheetname_temp_male)
+      openxlsx::addWorksheet(wb, sheetname_temp_male)
       writeData(wb, sheetname_temp_male, fore_selected_male)
     }
     
@@ -1110,7 +1269,7 @@ for(country_index in 1:length(OECD_fore_result_base))
   }
   
   
-  saveWorkbook(wb, file_name_temp, overwrite = TRUE)
+  openxlsx::saveWorkbook(wb, file_name_temp, overwrite = TRUE)
   
   rm(file_name_temp)
   

@@ -65,6 +65,15 @@ mae <- function(forecast, true)
   return(err)
 }
 
+interval_score <- function(x, l, u, alpha)
+{
+  finite_ind = is.finite(x)
+  
+  lb_ind = ifelse(x[finite_ind] < l[finite_ind], 1, 0)
+  ub_ind = ifelse(x[finite_ind] > u[finite_ind], 1, 0)
+  score = (u[finite_ind] - l[finite_ind]) + 2/alpha * (l[finite_ind] - x[finite_ind]) * lb_ind + 2/alpha * (x[finite_ind] - u[finite_ind]) * ub_ind
+  return(mean(score))
+}
 
 f2 <- function(x, ages) mean(ages) - x
 
@@ -1013,10 +1022,11 @@ age_specific_SHAP <- function(country_index)
     }
     # write the training data into a csv file
     temp_file_name_female = paste(OECD_train[country_index], "_age_", ij, "_female", ".csv", sep = "")
-	##### Update the file path to the folder containing the data #####
-    temp_file_path_female = paste(".../", temp_file_name_female, sep = "")  
-    write.csv(data_train_female, file = temp_file_path_female, row.names = FALSE)
-    temp_train_female <- h2o.importFile(path = temp_file_path_female, header = TRUE)
+	  
+    # ##### Update the file path to the folder containing the data #####
+    # temp_file_path_female = paste(".../", temp_file_name_female, sep = "")  
+    write.csv(data_train_female, file = temp_file_name_female, row.names = FALSE)
+    temp_train_female <- h2o.importFile(path = temp_file_name_female, header = TRUE)
     
     # run AutoML to tune various models (GBM) for 60 seconds. make sure equal number of "nfolds" is specified for different grids
     
@@ -1048,10 +1058,11 @@ age_specific_SHAP <- function(country_index)
     
     # write the training data into a csv file
     temp_file_name_male = paste(OECD_train[country_index], "_age_", ij, "_male", ".csv", sep = "")
-	##### Update the file path to the folder containing the data #####
-    temp_file_path_male = paste(".../", temp_file_name_male, sep = "")
-    write.csv(data_train_male, file = temp_file_path_male, row.names = FALSE)
-    temp_train_male <- h2o.importFile(path = temp_file_path_male, header = TRUE)
+	  
+    # ##### Update the file path to the folder containing the data #####
+    # temp_file_path_male = paste(".../", temp_file_name_male, sep = "")
+    write.csv(data_train_male, file = temp_file_name_male, row.names = FALSE)
+    temp_train_male <- h2o.importFile(path = temp_file_name_male, header = TRUE)
     
     # run AutoML to tune various models (GBM) for 60 seconds. make sure equal number of "nfolds" is specified for different grids
     
@@ -2125,7 +2136,7 @@ err_fun_interval_testing <- function(index, state_select, state_select_smooth, n
 
 # Define a function to implement Simple Averaging, Interior Trimming, AIC, MSE, and Shapley-based interval prediction averaging methods
 
-combine_interval <- function(country_index, method = c("Average", "Interior_trimming", "AIC", "MSE", "SHAP"), alpha)
+combine_interval <- function(country_index, state_select = OECD_all_data, method = c("Average", "Interior_trimming", "AIC", "MSE", "SHAP"), alpha)
 {
   mean_interval_score_female = mean_interval_score_male = rep(0, 10) # output of the averaged interval score using the expanding window scheme
   
